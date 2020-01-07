@@ -1,0 +1,33 @@
+{
+    "name": "nmirceac/api-tools",
+    "type": "library",
+    "description": "API Tools for Laravel",
+    "keywords": ["api","apiTools", "laravel","laravel api"],
+    "homepage": "https://github.com/nmirceac/apiTools",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Mircea Nicolae",
+            "email": "mircea@nicolae.co.za",
+            "homepage": "https://github.com/nmirceac",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "binarytorch/larecipe": "^2.2",
+        "binarytorch/larecipe-swagger": "^0.2.0",
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApiTools\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ApiTools\\ApiToolsServiceProvider"
+            ]
+        }
+    }
+}
