@@ -3,8 +3,8 @@
 return [
     'router'=> [
         'includeRoutes'=>true,
-        'prefix'=>'smstools',
-        'namedPrefix'=>'sms-tools',
+        'prefix'=>'apitools',
+        'namedPrefix'=>'api-tools',
         'webhookEndpoint'=>'webhook'
     ],
 

@@ -1,5 +1,5 @@
-# smsTools
-Sms Tools
+# apiTools
+API Tools
 
 ## Contents
 1. Intro
@@ -9,22 +9,18 @@ Sms Tools
 
 ## How to install?
 
-- composer require nmirceac/sms-tools
+- composer require nmirceac/api-tools
 - php artisan vendor:publish
 - php artisan migrate
-- check config/sms.php (just in case)
+- check config/api.php (just in case)
 - add your API details to .env
-- php artisan smstools:setup
+- php artisan apitools:setup
 - check the examples below
 - enjoy! 
 
 ## Samples
 
 ### .env sample config
-
-SMS_API_ENDPOINT="https://sms.weanswer.it/api/v1/sms"
-SMS_API_KEY="AAAAAAAAA"
-SMS_API_SECRET="ZZZZZZZZZZZZZZZZZZZ"
 
 
 ## Examples

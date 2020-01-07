@@ -1,8 +1,8 @@
-<?php namespace SmsTools;
+<?php namespace ApiTools;
 
 use Illuminate\Support\ServiceProvider;
 
-class SmsToolsServiceProvider extends ServiceProvider
+class ApiToolsServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -11,9 +11,9 @@ class SmsToolsServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Routing\Router $router)
     {
-        if(config('sms.router.includeRoutes')) {
-            $router->prefix(config('sms.router.prefix'))
-                ->namespace('SmsTools\Http\Controllers')
+        if(config('api.router.includeRoutes')) {
+            $router->prefix(config('api.router.prefix'))
+                ->namespace('ApiTools\Http\Controllers')
                 ->middleware(['api'])
                 ->group(__DIR__.'/Http/api.php');
         }
@@ -21,18 +21,12 @@ class SmsToolsServiceProvider extends ServiceProvider
         $argv = $this->app->request->server->get('argv');
         if(isset($argv[1]) and $argv[1]=='vendor:publish') {
             $this->publishes([
-                __DIR__.'/../config/sms.php' => config_path('sms.php'),
+                __DIR__.'/../config/api.php' => config_path('api.php'),
             ], 'config');
             $this->publishes([
                 __DIR__.'/SmsMessage.stub.php' => app_path('SmsMessage.php'),
             ], 'model');
 
-            $existing = glob(database_path('migrations/*_create_sms_*'));
-            if(empty($existing)) {
-                $this->publishes([
-                    __DIR__.'/../database/migrations/create_sms_messages.stub.php' => database_path('migrations/'.date('Y_m_d_His', time()).'1_create_sms_messages.php')
-                ], 'migrations');
-            }
         }
     }
 
@@ -43,13 +37,14 @@ class SmsToolsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/sms.php', 'sms');
+        $this->mergeConfigFrom(__DIR__.'/../config/api.php', 'api');
 
-        $this->app->bind('command.smstools:setup', Commands\SetupCommand::class);
+        $this->app->bind('command.apitools:setup', Commands\SetupCommand::class);
+        $this->app->bind('command.apitools:docs', Commands\DocsCommand::class);
 
         $this->commands([
-//            'command.smstools:stats',
-            'command.smstools:setup',
+            'command.apitools:setup',
+            'command.apitools:docs',
         ]);
 
     }
