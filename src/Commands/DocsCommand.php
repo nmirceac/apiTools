@@ -22,7 +22,7 @@ class DocsCommand extends Command
     protected $lastElement = null;
     protected $anchors = [];
 
-    protected $commonRecipe = ' :default-headers="{ \'x-api-key\': \'iLikeCheese\' }"';
+    protected $commonRecipe = 'has-common-headers="true"';
 
     /**
      * Create a new command instance.
@@ -41,27 +41,40 @@ class DocsCommand extends Command
      */
     public function handle()
     {
+        $this->checkPaths();
         $this->info('Generating documentation');
         $this->generateDocumentation();
         $this->info('All done');
     }
 
+    private function checkPaths()
+    {
+        $basePath = resource_path('docs');
+        if(!file_exists($basePath)) {
+            mkdir($basePath);
+        }
+        $versionPath = $basePath.'/'.'master';
+        if(!file_exists($versionPath)) {
+            mkdir($versionPath);
+        }
+    }
+
     private function getApiSchema()
     {
-        return json_decode(file_get_contents(\App\Api\Base::$apiEndpoint . 'api/schema'), true);
+        return (new \App\Http\Controllers\Api\Api())->generateSchema();
     }
 
     private function generateDocumentation()
     {
         $schema = $this->getApiSchema();
 
-        foreach ($schema['data']['classes'] as $class) {
+        foreach ($schema['classes'] as $class) {
             $this->generateDocsForClass($class);
         }
 
         $this->generateOverview($schema);
 
-        $this->generateSideMenu($schema['data']['classes']);
+        $this->generateSideMenu($schema['classes']);
     }
 
     private function generateSideMenu($models)
@@ -240,7 +253,7 @@ class DocsCommand extends Command
 
         $string .= $this->anchor('Intro');
 
-        foreach($schema['data']['intro'] as $part) {
+        foreach($schema['intro'] as $part) {
             $string .= $this->{$part['type']}($part['content']);
         }
 
@@ -532,9 +545,9 @@ class DocsCommand extends Command
         $string .=' base-url="/"';
         $string .=' endpoint="' . $url . '"';
         $string .=' default-method="'.strtolower($method['route']['accepts'][0]).'"';
-        $string .= $this->commonRecipe;
+        $string .=' :default-headers=\''.json_encode(config('api.api.requestHeaders')).'\'';
+        $string .= ' '.trim($this->commonRecipe);
         //$string .=' :default-params="{\'name\': \'saleem\'}"';
-        //$string .=' has-common-headers="true"';
         $string .='></larecipe-swagger>';
         $string .= $this->newline();
 

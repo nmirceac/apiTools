@@ -3,25 +3,15 @@
 /**
  * Class ApiController
  * @apiDescription Exposing the API interfaces
- * @package App\Http\Controllers\Api
+ * @package ApiTools\Http\Controllers\ApiController
  */
 class ApiController extends BaseController
 {
     protected $intro = [
-        ['type'=>'h1', 'content'=>'Collaboration Admin interface'],
-
-        ['type'=>'h2', 'content'=>'This is an interface that gives access to the data structures required by this project'],
-        ['type'=>'paragraph', 'content'=>'It can be easily used with the api-interface and api-client packages'],
-        ['type'=>'h2', 'content'=>'Clients, Projects, Posts and Settings are a few of the important data structures'],
-        ['type'=>'paragraph', 'content'=>'All packed in nice JSON structures'],
+        ['type'=>'h1', 'content'=>'API interface']
     ];
 
-    protected $exposed = [
-        Client::class,
-        Content::class,
-        Project::class,
-        Setting::class,
-    ];
+    protected $exposed = [];
 
     public $apiRoutesByUrl = [];
     public $apiRoutesByAction = [];
@@ -31,8 +21,7 @@ class ApiController extends BaseController
         'UPDATED_AT',
     ];
 
-
-    public function schema()
+    public function generateSchema()
     {
         $routes = \Route::getRoutes();
         foreach($routes->getRoutes() as $route) {
@@ -53,10 +42,16 @@ class ApiController extends BaseController
             $classes[] = $this->exposeClass($class);
         }
 
-        return $this->sendResponse([
+        return [
             'intro' => $this->intro,
             'classes' => $classes
-        ]);
+        ];
+    }
+
+
+    public function schema()
+    {
+        return $this->sendResponse($this->generateSchema());
     }
 
     private function exposeClass($class)

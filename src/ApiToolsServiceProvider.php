@@ -13,19 +13,23 @@ class ApiToolsServiceProvider extends ServiceProvider
     {
         if(config('api.router.includeRoutes')) {
             $router->prefix(config('api.router.prefix'))
-                ->namespace('ApiTools\Http\Controllers')
-                ->middleware(['api'])
+                ->namespace('App\Http\Controllers')
+                ->middleware(config('api.router.middleware'))
                 ->group(__DIR__.'/Http/api.php');
         }
 
         $argv = $this->app->request->server->get('argv');
         if(isset($argv[1]) and $argv[1]=='vendor:publish') {
+            if(!file_exists(app_path('/Http/Controllers/Api'))) {
+                mkdir(app_path('/Http/Controllers/Api'));
+            }
+
             $this->publishes([
                 __DIR__.'/../config/api.php' => config_path('api.php'),
-            ], 'config');
+            ], ['config', 'apitools', 'adminify']);
             $this->publishes([
-                __DIR__.'/SmsMessage.stub.php' => app_path('SmsMessage.php'),
-            ], 'model');
+                __DIR__.'/Http/Controllers/Api.php.stub' => app_path('/Http/Controllers/Api/Api.php'),
+            ], ['model', 'apitools', 'adminify']);
 
         }
     }

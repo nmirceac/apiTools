@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+/**
+ * Class ApiController
+ * @apiDescription Exposing the API interfaces
+ * @package App\Http\Controllers\Api
+ */
+class Api extends \ApiTools\Http\Controllers\ApiController
+{
+    protected $intro = [
+        ['type'=>'h1', 'content'=>'API Admin interface'],
+    ];
+
+    protected $exposed = [
+        //ApiControllerClass
+    ];
+}
