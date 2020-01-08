@@ -26,11 +26,19 @@ class ApiToolsServiceProvider extends ServiceProvider
 
             $this->publishes([
                 __DIR__.'/../config/api.php' => config_path('api.php'),
+                __DIR__.'/../config/larecipe.php' => config_path('larecipe.php'),
             ], ['config', 'apitools', 'adminify']);
             $this->publishes([
                 __DIR__.'/../stubs/Http/Controllers/Api.php.stub' => app_path('/Http/Controllers/Api/Api.php'),
             ], ['model', 'apitools', 'adminify']);
 
+
+            $this->publishes([
+                __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/404.blade.php.stub' => resource_path('/views/vendor/larecipe/partials/404.blade.php'),
+                __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/logo.blade.php' => resource_path('/views/vendor/larecipe/partials/logo.blade.php'),
+                __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/nav.blade.php' => resource_path('/views/vendor/larecipe/partials/nav.blade.php'),
+                __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/sidebar.blade.php' => resource_path('/views/vendor/larecipe/partials/sidebar.blade.php'),
+            ], ['views', 'apitools', 'adminify']);
         }
     }
 
@@ -42,6 +50,7 @@ class ApiToolsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../config/api.php', 'api');
+        $this->mergeConfigFrom(__DIR__.'/../config/larecipe.php', 'larecipe');
 
         $this->app->bind('command.apitools:setup', Commands\SetupCommand::class);
         $this->app->bind('command.apitools:docs', Commands\DocsCommand::class);
