@@ -15,7 +15,7 @@ class ApiToolsServiceProvider extends ServiceProvider
             $router->prefix(config('api.router.prefix'))
                 ->namespace('App\Http\Controllers')
                 ->middleware(config('api.router.middleware'))
-                ->group(__DIR__.'/Http/api.php');
+                ->group(__DIR__.'/routes/api.php');
         }
 
         $argv = $this->app->request->server->get('argv');
@@ -28,7 +28,7 @@ class ApiToolsServiceProvider extends ServiceProvider
                 __DIR__.'/../config/api.php' => config_path('api.php'),
             ], ['config', 'apitools', 'adminify']);
             $this->publishes([
-                __DIR__.'/Http/Controllers/Api.php.stub' => app_path('/Http/Controllers/Api/Api.php'),
+                __DIR__.'/../stubs/Http/Controllers/Api.php.stub' => app_path('/Http/Controllers/Api/Api.php'),
             ], ['model', 'apitools', 'adminify']);
 
         }

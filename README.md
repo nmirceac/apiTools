@@ -22,9 +22,9 @@ API Tools
 ### .env sample config
 
 
-## Examples
+# 2. Examples
 
-### Api controller
+## Api controller
 
 ``` php
 <?php
@@ -58,7 +58,7 @@ class Api extends \ApiTools\Http\Controllers\ApiController
 
 ```
 
-### User controller
+## User controller
 
 ``` php
 <?php
@@ -92,7 +92,7 @@ class User extends \ApiTools\Http\Controllers\BaseController
 
 ```
 
-### API routes
+## API routes
 ``` php
 ...
 Route::get('/users', ['uses' => 'Api\User@index']);

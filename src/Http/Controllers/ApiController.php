@@ -25,7 +25,7 @@ class ApiController extends BaseController
     {
         $routes = \Route::getRoutes();
         foreach($routes->getRoutes() as $route) {
-            if(isset($route->action['prefix']) and $route->action['prefix']=='api') {
+            if(isset($route->uri) and substr($route->uri, 0, 4)=='api/') {
                 $routeInfo = [];
                 $routeInfo['uri'] = $route->uri;
                 $routeInfo['action'] = $route->action['controller'];
