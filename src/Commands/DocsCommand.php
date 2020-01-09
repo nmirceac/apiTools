@@ -138,11 +138,11 @@ class DocsCommand extends Command
 
 
         $string .= $this->anchor('methods');
-        $string .= $this->h1('Methods');
+        $string .= $this->h2('Methods');
 
         foreach ($class['methods'] as $method) {
             $string .= $this->anchor(Str::slug($method['name']));
-            $string .= $this->h2($method['name']);
+            $string .= $this->h3($method['name']);
 
             if(isset($method['api']['description'])) {
                 $string .= $this->alarm($method['api']['description'], 'primary', 'fa-commenting');

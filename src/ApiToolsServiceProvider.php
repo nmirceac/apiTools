@@ -34,6 +34,7 @@ class ApiToolsServiceProvider extends ServiceProvider
 
 
             $this->publishes([
+                base_path('vendor/binarytorch/larecipe/publishable/assets') => public_path('vendor/binarytorch/larecipe/assets'),
                 __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/404.blade.php.stub' => resource_path('/views/vendor/larecipe/partials/404.blade.php'),
                 __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/logo.blade.php.stub' => resource_path('/views/vendor/larecipe/partials/logo.blade.php'),
                 __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/nav.blade.php.stub' => resource_path('/views/vendor/larecipe/partials/nav.blade.php'),
