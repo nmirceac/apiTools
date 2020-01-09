@@ -540,6 +540,14 @@ class DocsCommand extends Command
             }
         }
 
+        $requestParams = [];
+
+        foreach($method['api'] as $param=>$value) {
+            if(Str::startsWith($param, 'requestParam')) {
+                $requestParams[strtolower(substr($param, 12))] = $value;
+            }
+        }
+
         $string  = $this->newline();
         $string .='<larecipe-swagger';
         $string .=' base-url="/"';
@@ -547,7 +555,7 @@ class DocsCommand extends Command
         $string .=' default-method="'.strtolower($method['route']['accepts'][0]).'"';
         $string .=' :default-headers=\''.json_encode(config('api.api.requestHeaders')).'\'';
         $string .= ' '.trim($this->commonRecipe);
-        //$string .=' :default-params="{\'name\': \'saleem\'}"';
+        $string .=' :default-params=\''.json_encode($requestParams).'\'';
         $string .='></larecipe-swagger>';
         $string .= $this->newline();
 
