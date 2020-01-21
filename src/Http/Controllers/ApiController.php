@@ -189,7 +189,7 @@ class ApiController extends BaseController
                 $line = trim($line, "\r\n\t *");
                 if(substr($line, 0, 4)=='@api') {
                     $line = substr($line, 4);
-                    $param = camel_case(substr($line, 0, strpos($line, ' ')));
+                    $param = lcfirst(substr($line, 0, strpos($line, ' ')));
                     $value = substr($line, 1 + strpos($line, ' '));
 
                     $docComment[$param][] = $value;

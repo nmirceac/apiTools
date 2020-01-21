@@ -146,4 +146,23 @@ class BaseController
 
         return response()->json($response, $code);
     }
+
+    /**
+     * Acknowledge response method.
+     * @param $data
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function sendAck($data = [])
+    {
+        $response = [
+            'success' => true,
+            'ack' => true
+        ];
+
+        if(!empty($data)) {
+            $response['data'] = $data;
+        }
+
+        return response()->json($response, 200);
+    }
 }
