@@ -165,4 +165,68 @@ class BaseController
 
         return response()->json($response, 200);
     }
+
+    /**
+     * Detect if thumbnail is present in payload
+     * @param $payload
+     */
+    protected function thumnbnailDetect(&$payload)
+    {
+        $thumbnailDetected = false;
+        foreach($payload as $param=>$value) {
+            if(in_array($param, ['thumbnailUrl', 'thumbnailContent', 'thumbnailFormat'])) {
+                unset($payload[$param]);
+                if(!is_array($thumbnailDetected)) {
+                    $thumbnailDetected = [];
+                }
+                $thumbnailDetected[$param] = $value;
+            }
+        }
+        return $thumbnailDetected;
+    }
+
+    /**
+     * Auto load thumbnail to model
+     * @param $model
+     * @param $thumbnailData
+     */
+    protected function thumbnailAttach($model, $payload, $name='')
+    {
+        if(isset($payload['thumbnailUrl']) and !empty($payload['thumbnailUrl'])) {
+            $extension = null;
+            if(isset($payload['thumbnailFormat']) and !empty($payload['thumbnailFormat'])) {
+                $detectedFormat = $payload['thumbnailFormat'];
+            } else {
+                $detectedFormat = strtolower(substr($payload['thumbnailUrl'], 0, -4));
+            }
+
+            if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                $extension = 'jpeg';
+            }
+            if($detectedFormat == '.png') {
+                $extension = 'png';
+            }
+
+            if(!is_null($extension)) {
+                $contents = file_get_contents($payload['thumbnailUrl']);
+
+                if(!empty($contents)) {
+                    $metadata['mime'] = 'image/'.$extension;
+                    if($name) {
+                        $metadata['name'] = $name;
+                    } else {
+                        $metadata['name'] = substr($payload['thumbnailUrl'], strrpos($payload['thumbnailUrl'], '/')+1);
+                    }
+                    $metadata['basename'] = $metadata['name'];
+                    $metadata['extension'] = $extension;
+                    $metadata['size'] = strlen($contents);
+                    $metadata['originalPath'] = $payload['thumbnailUrl'];
+                    $metadata['hash'] = md5($contents);
+
+                    $image = \App\ImageStore::create($metadata, $contents);
+                    $image->attach($model, 'thumbnail');
+                }
+            }
+        }
+    }
 }
