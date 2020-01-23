@@ -197,7 +197,7 @@ class BaseController
             if(isset($payload['thumbnailFormat']) and !empty($payload['thumbnailFormat'])) {
                 $detectedFormat = $payload['thumbnailFormat'];
             } else {
-                $detectedFormat = strtolower(substr($payload['thumbnailUrl'], 0, -4));
+                $detectedFormat = strtolower(substr($payload['thumbnailUrl'], -4));
             }
 
             if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
@@ -207,26 +207,68 @@ class BaseController
                 $extension = 'png';
             }
 
-            if(!is_null($extension)) {
-                $contents = file_get_contents($payload['thumbnailUrl']);
-
-                if(!empty($contents)) {
-                    $metadata['mime'] = 'image/'.$extension;
-                    if($name) {
-                        $metadata['name'] = $name;
-                    } else {
-                        $metadata['name'] = substr($payload['thumbnailUrl'], strrpos($payload['thumbnailUrl'], '/')+1);
-                    }
-                    $metadata['basename'] = $metadata['name'];
-                    $metadata['extension'] = $extension;
-                    $metadata['size'] = strlen($contents);
-                    $metadata['originalPath'] = $payload['thumbnailUrl'];
-                    $metadata['hash'] = md5($contents);
-
-                    $image = \App\ImageStore::create($metadata, $contents);
-                    $image->attach($model, 'thumbnail');
-                }
+            if(is_null($extension)) {
+                return;
             }
+
+            $contents = file_get_contents($payload['thumbnailUrl']);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $metadata['mime'] = 'image/'.$extension;
+            if($name) {
+                $metadata['name'] = $name;
+            } else {
+                $metadata['name'] = substr($payload['thumbnailUrl'], strrpos($payload['thumbnailUrl'], '/')+1);
+            }
+            $metadata['basename'] = $metadata['name'];
+            $metadata['extension'] = $extension;
+            $metadata['size'] = strlen($contents);
+            $metadata['originalPath'] = $payload['thumbnailUrl'];
+            $metadata['hash'] = md5($contents);
+
+            $image = \App\ImageStore::create($metadata, $contents);
+            $image->attach($model, 'thumbnail');
+        } else if(isset($payload['thumbnailContent']) and !empty($payload['thumbnailContent'])) {
+            $extension = null;
+            if(isset($payload['thumbnailFormat']) and !empty($payload['thumbnailFormat'])) {
+                $detectedFormat = $payload['thumbnailFormat'];
+            } else {
+                return;
+            }
+
+            if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                $extension = 'jpeg';
+            }
+            if($detectedFormat == '.png') {
+                $extension = 'png';
+            }
+
+            if(is_null($extension)) {
+                return;
+            }
+
+            $contents = base64_decode($payload['thumbnailContent']);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $metadata['mime'] = 'image/'.$extension;
+            if($name) {
+                $metadata['name'] = $name;
+            } else {
+                $metadata['name'] = $this->itemName.' '.$this->keyName.' avatar';
+            }
+            $metadata['basename'] = $metadata['name'];
+            $metadata['extension'] = $extension;
+            $metadata['size'] = strlen($contents);
+            $metadata['hash'] = md5($contents);
+
+            $image = \App\ImageStore::create($metadata, $contents);
+            $image->attach($model, 'thumbnail');
         }
     }
 }
