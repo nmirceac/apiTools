@@ -11,6 +11,8 @@ class ApiToolsServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Routing\Router $router)
     {
+        $router->aliasMiddleware('api-tools', Http\Middleware\ApiToolsMiddleware::class);
+
         if(config('api.router.includeRoutes')) {
             $router->prefix(config('api.router.prefix'))
                 ->namespace('App\Http\Controllers')

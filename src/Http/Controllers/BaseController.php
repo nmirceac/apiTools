@@ -166,6 +166,16 @@ class BaseController
         return response()->json($response, 200);
     }
 
+    protected function getApiAuthId()
+    {
+        return request()->attributes->get('auth_id');
+    }
+
+    protected function getApiAuthUser()
+    {
+        return \App\User::find($this->getApiAuthId());
+    }
+
     /**
      * Detect if thumbnail is present in payload
      * @param $payload
