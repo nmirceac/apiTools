@@ -34,11 +34,6 @@ class ApiToolsMiddleware
             $request->attributes->add(['auth_id'=>$authId]);
         }
 
-        $request->attributes->add(['auth'=>'yes']);
-        $request->attributes->add(['qwe'=>'yes']);
-        $request->attributes->add(['retre'=>'yes']);
-
-
         return $next($request);
 
     }

@@ -177,6 +177,121 @@ class BaseController
     }
 
     /**
+     * @apiDescription Add images
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function addImages(int $id)
+    {
+        $i = $this->class::find($id);
+
+        $payload = request()->all();
+
+        $imagesPayload = $this->imagesDetect($payload);
+
+        if(is_null($i)) {
+            return $this->sendError(ucfirst($this->itemName).' not found', [], 404);
+        }
+
+        if($imagesPayload) {
+            $this->imagesAttach($i, $imagesPayload);
+        } else {
+            return $this->sendError('No images sent', [], 404);
+        }
+
+        return $this->sendAck();
+    }
+
+    /**
+     * @apiDescription Get all images - supports the optional role parameter with the request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getImages(int $id)
+    {
+        $i = $this->class::find($id);
+
+        $payload = request()->all();
+
+        $imagesPayload = $this->imagesDetect($payload);
+
+        if(is_null($i)) {
+            return $this->sendError(ucfirst($this->itemName).' not found', [], 404);
+        }
+
+        $role = request('role', 'images');
+
+        return $this->sendResponse($i->imagesByRole($role)->get());
+    }
+
+    /**
+     * @apiDescription Get paginated images - supports the optional role parameter with the request
+     * @param int $id
+     * @param int $page
+     * @param int $itemsPerPage
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getImagesPaginated(int $id, int $page, int $itemsPerPage=12)
+    {
+        $i = $this->class::find($id);
+
+        $payload = request()->all();
+
+        $imagesPayload = $this->imagesDetect($payload);
+
+        if(is_null($i)) {
+            return $this->sendError(ucfirst($this->itemName).' not found', [], 404);
+        }
+
+        $role = request('role', 'images');
+
+        $pagination = $i->imagesByRole($role)
+            ->paginate($itemsPerPage, ['*'], 'page', $page)
+            ->withPath('');
+
+        return $this->sendResponse($pagination);
+    }
+
+    /**
+     * @apiDescription Update the images' order
+     * @param int $id
+     * @apiPostParamImagesIds ids
+     * @apiPostParamRole role
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reorderImages(int $id)
+    {
+        $i = $this->class::find($id);
+        if(is_null($i)) {
+            return $this->sendError(ucfirst($this->itemName).' not found', [], 404);
+        }
+
+        $this->sendAck(request('ids'));
+
+        $i->reorderImagesByRole(request('ids'), request('role', 'images'));
+
+        return $this->sendAck();
+    }
+
+    /**
+     * @apiDescription Delete a image by id
+     * @param int $id
+     * @param int $imageId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteImage(int $id, int $imageId)
+    {
+        $i = $this->class::find($id);
+        if(is_null($i)) {
+            return $this->sendError(ucfirst($this->itemName).' not found', [], 404);
+        }
+
+        $i->clearImage($imageId);
+
+        return $this->sendAck();
+    }
+
+    /**
      * Detect if thumbnail is present in payload
      * @param $payload
      */
@@ -200,14 +315,14 @@ class BaseController
      * @param $model
      * @param $thumbnailData
      */
-    protected function thumbnailAttach($model, $payload, $name='')
+    protected function thumbnailAttach($model, $thumbnailData, $name='')
     {
-        if(isset($payload['thumbnailUrl']) and !empty($payload['thumbnailUrl'])) {
+        if(isset($thumbnailData['thumbnailUrl']) and !empty($thumbnailData['thumbnailUrl'])) {
             $extension = null;
-            if(isset($payload['thumbnailFormat']) and !empty($payload['thumbnailFormat'])) {
-                $detectedFormat = $payload['thumbnailFormat'];
+            if(isset($thumbnailData['thumbnailFormat']) and !empty($thumbnailData['thumbnailFormat'])) {
+                $detectedFormat = $thumbnailData['thumbnailFormat'];
             } else {
-                $detectedFormat = strtolower(substr($payload['thumbnailUrl'], -4));
+                $detectedFormat = strtolower(substr($thumbnailData['thumbnailUrl'], -4));
             }
 
             if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
@@ -221,7 +336,7 @@ class BaseController
                 return;
             }
 
-            $contents = file_get_contents($payload['thumbnailUrl']);
+            $contents = file_get_contents($thumbnailData['thumbnailUrl']);
 
             if(empty($contents)) {
                 return;
@@ -231,20 +346,20 @@ class BaseController
             if($name) {
                 $metadata['name'] = $name;
             } else {
-                $metadata['name'] = substr($payload['thumbnailUrl'], strrpos($payload['thumbnailUrl'], '/')+1);
+                $metadata['name'] = substr($thumbnailData['thumbnailUrl'], strrpos($thumbnailData['thumbnailUrl'], '/')+1);
             }
             $metadata['basename'] = $metadata['name'];
             $metadata['extension'] = $extension;
             $metadata['size'] = strlen($contents);
-            $metadata['originalPath'] = $payload['thumbnailUrl'];
+            $metadata['originalPath'] = $thumbnailData['thumbnailUrl'];
             $metadata['hash'] = md5($contents);
 
             $image = \App\ImageStore::create($metadata, $contents);
             $image->attach($model, 'thumbnail');
-        } else if(isset($payload['thumbnailContent']) and !empty($payload['thumbnailContent'])) {
+        } else if(isset($thumbnailData['thumbnailContent']) and !empty($thumbnailData['thumbnailContent'])) {
             $extension = null;
-            if(isset($payload['thumbnailFormat']) and !empty($payload['thumbnailFormat'])) {
-                $detectedFormat = $payload['thumbnailFormat'];
+            if(isset($thumbnailData['thumbnailFormat']) and !empty($thumbnailData['thumbnailFormat'])) {
+                $detectedFormat = $thumbnailData['thumbnailFormat'];
             } else {
                 return;
             }
@@ -260,7 +375,7 @@ class BaseController
                 return;
             }
 
-            $contents = base64_decode($payload['thumbnailContent']);
+            $contents = base64_decode($thumbnailData['thumbnailContent']);
 
             if(empty($contents)) {
                 return;
@@ -279,6 +394,136 @@ class BaseController
 
             $image = \App\ImageStore::create($metadata, $contents);
             $image->attach($model, 'thumbnail');
+        }
+    }
+
+    /**
+     * Detect if images are present in payload
+     * @param $payload
+     */
+    protected function imagesDetect(&$payload)
+    {
+        $imagesDetected = false;
+        if(!isset($payload['images']) or (isset($payload['images']) and !is_array($payload['images']))) {
+            return false;
+        }
+
+        $imagesDetected = [];
+        foreach($payload['images'] as $image) {
+            if(
+                (isset($image['url']) and !empty($image['url'])) or
+                (isset($image['content']) and !empty($image['content']) and isset($image['format']) and !empty($image['format']))
+            ) {
+                $imagesDetected[] = $image;
+            }
+        }
+
+        unset($payload['images']);
+        if(empty($imagesDetected)) {
+            return false;
+        }
+
+        return $imagesDetected;
+    }
+
+    /**
+     * Auto load images to model
+     * @param $model
+     * @param $imagesPayload
+     */
+    protected function imagesAttach($model, $imagesPayload, $role='images')
+    {
+        foreach($imagesPayload as $image) {
+            if(isset($image['url']) and !empty($image['url'])) {
+                $extension = null;
+                if(isset($image['format']) and !empty($image['format'])) {
+                    $detectedFormat = $image['format'];
+                } else {
+                    $detectedFormat = strtolower(substr($image['url'], -4));
+                }
+
+                if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                    $extension = 'jpeg';
+                }
+                if($detectedFormat == '.png') {
+                    $extension = 'png';
+                }
+
+                if(is_null($extension)) {
+                    continue;
+                }
+
+                $contents = file_get_contents($image['url']);
+
+                if(empty($contents)) {
+                    continue;
+                }
+
+                $metadata['mime'] = 'image/'.$extension;
+                $metadata['extension'] = $extension;
+                $metadata['size'] = strlen($contents);
+                $metadata['originalPath'] = $image['url'];
+                $metadata['hash'] = md5($contents);
+
+                if(isset($image['name']) and !empty($image['name'])) {
+                    $metadata['name'] = $image['name'];
+                } else {
+                    $metadata['name'] = $metadata['hash'];
+                }
+                $metadata['basename'] = $metadata['name'];
+
+                $image = \App\ImageStore::create($metadata, $contents);
+
+                if(isset($image['role']) and !empty($image['role'])) {
+                    $image->attach($model, $image['role']);
+                } else {
+                    $image->attach($model, $role);
+                }
+            } else if(isset($image['content']) and !empty($image['content'])) {
+                $extension = null;
+                if(isset($image['format']) and !empty($image['format'])) {
+                    $detectedFormat = $image['format'];
+                } else {
+                    continue;
+                }
+
+                if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                    $extension = 'jpeg';
+                }
+                if($detectedFormat == '.png') {
+                    $extension = 'png';
+                }
+
+                if(is_null($extension)) {
+                    continue;
+                }
+
+                $contents = base64_decode($image['content']);
+
+                if(empty($contents)) {
+                    continue;
+                }
+
+                $metadata['mime'] = 'image/'.$extension;
+                $metadata['extension'] = $extension;
+                $metadata['size'] = strlen($contents);
+                $metadata['hash'] = md5($contents);
+
+                if(isset($image['name']) and !empty($image['name'])) {
+                    $metadata['name'] = $image['name'];
+                } else {
+                    $metadata['name'] = $metadata['hash'];
+                }
+                $metadata['basename'] = $metadata['name'];
+
+                $image = \App\ImageStore::create($metadata, $contents);
+
+                if(isset($image['role']) and !empty($image['role'])) {
+                    $image->attach($model, $image['role']);
+                } else {
+                    $image->attach($model, $role);
+                }
+            }
         }
     }
 }
