@@ -166,9 +166,14 @@ class BaseController
         return response()->json($response, 200);
     }
 
-    protected function getApiAuthId()
+    public static function authId()
     {
         return request()->attributes->get('auth_id');
+    }
+
+    protected function getApiAuthId()
+    {
+        return self::authId();
     }
 
     protected function getApiAuthUser()

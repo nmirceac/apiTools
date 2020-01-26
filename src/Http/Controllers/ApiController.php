@@ -48,7 +48,6 @@ class ApiController extends BaseController
         ];
     }
 
-
     public function schema()
     {
         return $this->sendResponse($this->generateSchema());
