@@ -360,7 +360,6 @@ class BaseController
             $metadata['hash'] = md5($contents);
 
             $image = \App\ImageStore::create($metadata, $contents);
-            $image->attach($model, 'thumbnail');
         } else if(isset($thumbnailData['thumbnailContent']) and !empty($thumbnailData['thumbnailContent'])) {
             $extension = null;
             if(isset($thumbnailData['thumbnailFormat']) and !empty($thumbnailData['thumbnailFormat'])) {
@@ -398,6 +397,10 @@ class BaseController
             $metadata['hash'] = md5($contents);
 
             $image = \App\ImageStore::create($metadata, $contents);
+        }
+
+        if(isset($image) and $image) {
+            $model->clearImagesByRole('thumbnail', true);
             $image->attach($model, 'thumbnail');
         }
     }
