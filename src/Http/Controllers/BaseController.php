@@ -21,6 +21,7 @@ class BaseController
 
     /**
      * @apiDescription Returns items list
+     * @apiSupportsPagination
      * @apiRequestParamPage 1
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception

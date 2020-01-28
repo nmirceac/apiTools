@@ -187,11 +187,17 @@ class ApiController extends BaseController
             foreach($lines as $row=>$line) {
                 $line = trim($line, "\r\n\t *");
                 if(substr($line, 0, 4)=='@api') {
-                    $line = substr($line, 4);
-                    $param = lcfirst(substr($line, 0, strpos($line, ' ')));
+                    $line = lcfirst(substr($line, 4));
+                    $param = substr($line, 0, strpos($line, ' '));
                     $value = substr($line, 1 + strpos($line, ' '));
 
-                    $docComment[$param][] = $value;
+                    if(empty($param)) { // flag - parameter without value
+                        $docComment[$line][] = true;
+                    } else {
+                        $docComment[$param][] = $value;
+                    }
+
+
                 }
             }
 
