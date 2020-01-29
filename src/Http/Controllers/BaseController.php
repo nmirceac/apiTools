@@ -185,6 +185,7 @@ class BaseController
     /**
      * @apiDescription Add images
      * @param int $id
+     * @apiPostParamImages images
      * @return \Illuminate\Http\JsonResponse
      */
     public function addImages(int $id)
@@ -305,7 +306,7 @@ class BaseController
     {
         $thumbnailDetected = false;
         foreach($payload as $param=>$value) {
-            if(in_array($param, ['thumbnailUrl', 'thumbnailContent', 'thumbnailFormat'])) {
+            if(in_array($param, ['thumbnailUrl', 'thumbnailContent', 'thumbnailFormat', 'thumbnailUrlBase64'])) {
                 unset($payload[$param]);
                 if(!is_array($thumbnailDetected)) {
                     $thumbnailDetected = [];
@@ -398,6 +399,41 @@ class BaseController
             $metadata['hash'] = md5($contents);
 
             $image = \App\ImageStore::create($metadata, $contents);
+        } else if(isset($thumbnailData['thumbnailUrlBase64']) and !empty($thumbnailData['thumbnailUrlBase64'])) {
+            $detectedFormat = substr($thumbnailData['thumbnailUrlBase64'], 0,  strpos($thumbnailData['thumbnailUrlBase64'], ';'));
+            $detectedFormat = substr($detectedFormat, strpos($detectedFormat, '/') + 1);
+            $base64Content = substr($thumbnailData['thumbnailUrlBase64'], strpos($thumbnailData['thumbnailUrlBase64'], ',') + 1);
+
+            if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                $extension = 'jpeg';
+            }
+            if($detectedFormat == '.png') {
+                $extension = 'png';
+            }
+
+            if(is_null($extension)) {
+                return;
+            }
+
+            $contents = base64_decode($base64Content);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $metadata['mime'] = 'image/'.$extension;
+            $metadata['extension'] = $extension;
+            $metadata['size'] = strlen($contents);
+            $metadata['hash'] = md5($contents);
+
+            if(isset($image['name']) and !empty($image['name'])) {
+                $metadata['name'] = $image['name'];
+            } else {
+                $metadata['name'] = $this->itemName.' '.$this->keyName.' avatar';
+            }
+            $metadata['basename'] = $metadata['name'];
+
+            $image = \App\ImageStore::create($metadata, $contents);
         }
 
         if(isset($image) and $image) {
@@ -420,8 +456,9 @@ class BaseController
         $imagesDetected = [];
         foreach($payload['images'] as $image) {
             if(
-                (isset($image['url']) and !empty($image['url'])) or
-                (isset($image['content']) and !empty($image['content']) and isset($image['format']) and !empty($image['format']))
+                (isset($image['url']) and !empty($image['url']))
+                or (isset($image['content']) and !empty($image['content']) and isset($image['format']) and !empty($image['format']))
+                or (isset($image['urlBase64']) and !empty($image['urlBase64']))
             ) {
                 $imagesDetected[] = $image;
             }
@@ -508,6 +545,47 @@ class BaseController
                 }
 
                 $contents = base64_decode($image['content']);
+
+                if(empty($contents)) {
+                    continue;
+                }
+
+                $metadata['mime'] = 'image/'.$extension;
+                $metadata['extension'] = $extension;
+                $metadata['size'] = strlen($contents);
+                $metadata['hash'] = md5($contents);
+
+                if(isset($image['name']) and !empty($image['name'])) {
+                    $metadata['name'] = $image['name'];
+                } else {
+                    $metadata['name'] = $metadata['hash'];
+                }
+                $metadata['basename'] = $metadata['name'];
+
+                $image = \App\ImageStore::create($metadata, $contents);
+
+                if(isset($image['role']) and !empty($image['role'])) {
+                    $image->attach($model, $image['role']);
+                } else {
+                    $image->attach($model, $role);
+                }
+            } else if(isset($image['urlBase64']) and !empty($image['urlBase64'])) {
+                $detectedFormat = substr($image['urlBase64'], 0,  strpos($image['urlBase64'], ';'));
+                $detectedFormat = substr($detectedFormat, strpos($detectedFormat, '/') + 1);
+                $base64Content = substr($image['urlBase64'], strpos($image['urlBase64'], ',') + 1);
+
+                if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
+                    $extension = 'jpeg';
+                }
+                if($detectedFormat == '.png') {
+                    $extension = 'png';
+                }
+
+                if(is_null($extension)) {
+                    continue;
+                }
+
+                $contents = base64_decode($base64Content);
 
                 if(empty($contents)) {
                     continue;
