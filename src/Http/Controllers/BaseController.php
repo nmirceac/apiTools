@@ -335,7 +335,7 @@ class BaseController
             if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                 $extension = 'jpeg';
             }
-            if($detectedFormat == '.png') {
+            if(trim($detectedFormat, ' .') == 'png') {
                 $extension = 'png';
             }
 
@@ -373,7 +373,7 @@ class BaseController
             if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                 $extension = 'jpeg';
             }
-            if($detectedFormat == '.png') {
+            if(trim($detectedFormat, ' .') == 'png') {
                 $extension = 'png';
             }
 
@@ -407,7 +407,7 @@ class BaseController
             if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                 $extension = 'jpeg';
             }
-            if($detectedFormat == '.png') {
+            if(trim($detectedFormat, ' .') == 'png') {
                 $extension = 'png';
             }
 
@@ -491,7 +491,7 @@ class BaseController
                 if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                     $extension = 'jpeg';
                 }
-                if($detectedFormat == '.png') {
+                if(trim($detectedFormat, ' .') == 'png') {
                     $extension = 'png';
                 }
 
@@ -536,7 +536,7 @@ class BaseController
                 if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                     $extension = 'jpeg';
                 }
-                if($detectedFormat == '.png') {
+                if(trim($detectedFormat, ' .') == 'png') {
                     $extension = 'png';
                 }
 
@@ -577,7 +577,7 @@ class BaseController
                 if($detectedFormat == 'jpeg' or $detectedFormat == '.jpg') {
                     $extension = 'jpeg';
                 }
-                if($detectedFormat == '.png') {
+                if(trim($detectedFormat, ' .') == 'png') {
                     $extension = 'png';
                 }
 
