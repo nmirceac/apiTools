@@ -43,6 +43,10 @@ class ApiToolsServiceProvider extends ServiceProvider
                 __DIR__.'/../stubs/resources/views/vendor/larecipe/partials/sidebar.blade.php.stub' => resource_path('/views/vendor/larecipe/partials/sidebar.blade.php'),
             ], ['views', 'apitools', 'adminify']);
         }
+
+        if(config('api.docs.includeTheme')) {
+            \BinaryTorch\LaRecipe\LaRecipe::style('api-tools', __DIR__.'/../docs/theme.css');
+        }
     }
 
     /**

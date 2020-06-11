@@ -55,7 +55,7 @@ return [
     */
 
     'settings'       => [
-        'auth'       => false,
+        'auth'       => !env('API_DOCS_PUBLIC', false),
         'ga_id'      => '',
         'middleware' => [
             'web',
