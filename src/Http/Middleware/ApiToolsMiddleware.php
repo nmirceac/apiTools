@@ -31,7 +31,12 @@ class ApiToolsMiddleware
 
         $authId = $request->header('x-auth-id');
         if($authId) {
-            $request->attributes->add(['auth_id'=>$authId]);
+            $request->attributes->add(['auth_id'=>(int) $authId]);
+
+            $impersonatorId = $request->header('x-auth-impersonator-id');
+            if($impersonatorId) {
+                $request->attributes->add(['auth_impersonator_id'=>(int) $impersonatorId]);
+            }
         }
 
         return $next($request);

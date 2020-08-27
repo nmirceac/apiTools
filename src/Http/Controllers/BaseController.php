@@ -172,9 +172,19 @@ class BaseController
         return request()->attributes->get('auth_id');
     }
 
+    public static function authImpersonatorId()
+    {
+        return request()->attributes->get('auth_impersonator_id');
+    }
+
     protected function getApiAuthId()
     {
         return self::authId();
+    }
+
+    protected function getApiAuthImpersonatorId()
+    {
+        return self::authImpersonatorId();
     }
 
     protected function getApiAuthUser()
