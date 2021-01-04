@@ -108,7 +108,7 @@ class ApiController extends BaseController
         $methods = [];
 
         foreach($reflector->getMethods() as $method) {
-            if($method->getModifiers()==256) {
+            if($method->isPublic()) {
                 $methodInfo = [];
                 $apiInfo = $this->getApiInfoFromDocComment($method->getDocComment());
                 $methodInfo['name'] = $method->name;
