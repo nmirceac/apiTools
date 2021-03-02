@@ -1,5 +1,8 @@
 <?php namespace ApiTools\Http\Middleware;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 class ApiToolsMiddleware
 {
     /**
@@ -9,23 +12,23 @@ class ApiToolsMiddleware
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, \Closure $next)
+    public function handle(Request $request, \Closure $next)
     {
-        $request = request();
-        $apiKey = $request->header('x-api-key');
-        //$apiSecret = $request->header('x-api-secret');
+        $requestCheckRequired = true;
 
-        if(config('api.debug')==false) {
-            if (! $apiKey) {
-                $this->respondWithError('Missing API Key', 401)->send();
-                exit();
-            }
+        if(config('api.debug')) {
+            $requestCheckRequired = false;
+        }
 
-            if (config('api.secret') != $apiKey) {
-                $this->respondWithError('Wrong API Key.', 403)->send();
+        if(config('api.allowAuthenticatedRequests') and \Auth::id()) {
+            $requestCheckRequired = false;
+        }
+
+        if($requestCheckRequired) {
+            $requestCheck = $this->checkRequestHeaders($request);
+            if($requestCheck) {
+                return $requestCheck;
                 exit();
-            } else {
-                //$request->attributes->add(['application_id'=>$application->id]);
             }
         }
 
@@ -40,15 +43,32 @@ class ApiToolsMiddleware
         }
 
         return $next($request);
+    }
 
+    public function checkRequestHeaders($request)
+    {
+        $apiKey = $request->header('x-api-key');
+
+        if (! $apiKey) {
+            return $this->respondWithError('Missing API Key', 401);
+        }
+
+        if (config('api.secret') != $apiKey) {
+            return $this->respondWithError('Wrong API Key.', 403);
+        } else {
+            //$request->attributes->add(['application_id'=>$application->id]);
+        }
+
+        return null;
     }
 
     public function respondWithError($message = 'Not authorized', $statusCode = 401)
     {
-        $response = ['error' => [
-            'message' => $message,
-            'status_code' => $statusCode
-        ]
+        $response = ['error' =>
+            [
+                'message' => $message,
+                'status_code' => $statusCode
+            ]
         ];
 
         return response()->json($response, $statusCode);

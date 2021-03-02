@@ -111,6 +111,21 @@ class BaseController
         return $results;
     }
 
+    private static function allowIpForRay($ip)
+    {
+        $allow = true;
+
+        if(!empty(config('api.ray_ip_whitelist')) and !in_array($ip, config('api.ray_ip_whitelist'))) {
+            $allow = false;
+        }
+
+        if(!empty(config('api.ray_ip_blacklist')) and in_array($ip, config('api.ray_ip_blacklist'))) {
+            $allow = false;
+        }
+
+        return $allow;
+    }
+
     /**
      * success response method.
      * @param $data
@@ -122,6 +137,38 @@ class BaseController
             'success' => true,
             'data' => $data
         ];
+
+        if(config('api.ray') and function_exists('ray')) {
+            $ip = request()->ip();
+            $allow = self::allowIpForRay($ip);
+
+            if($allow) {
+                $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
+                $title[] = strtoupper(config('app.name'));
+                $title[] = 'API RESPONSE';
+
+                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
+                    $title[] = $trace[1]['class'];
+                    $title[] = $trace[1]['function'];
+
+                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
+                        foreach($trace[1]['args'] as $arg) {
+                            $title[] = $arg;
+                        }
+                    }
+                }
+
+                $rayPayload = [
+                    'success' => true,
+                    'code' => 200,
+                    'data' => $data,
+                    'ip'=>implode(', ', request()->ips()),
+                    'trace' => $trace,
+                ];
+
+                ray(implode(' - ', $title), $rayPayload);
+            }
+        }
 
         return response()->json($response, 200);
     }
@@ -145,7 +192,72 @@ class BaseController
             $response['data'] = $errorMessages;
         }
 
+        if(config('api.ray') and function_exists('ray')) {
+            $ip = request()->ip();
+            $allow = self::allowIpForRay($ip);
+
+            if($allow) {
+                $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
+                $title[] = strtoupper(config('app.name'));
+                $title[] = 'API ERROR';
+
+                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
+                    $title[] = $trace[1]['class'];
+                    $title[] = $trace[1]['function'];
+
+                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
+                        foreach($trace[1]['args'] as $arg) {
+                            $title[] = $arg;
+                        }
+                    }
+                }
+
+                ray(implode(' - ', $title), [
+                    'success' => false,
+                    'code' => $code,
+                    'error' => $error,
+                    'errorMessages' => $errorMessages,
+                    'ip'=>implode(', ', request()->ips()),
+                    'trace' => $trace,
+                ])->red();
+            }
+        }
+
         return response()->json($response, $code);
+    }
+
+    protected static function getRayRequestData()
+    {
+        $request = request()->all();
+        foreach($request as $param=>$value) {
+            if(is_array($value)) {
+                $request[$param] = self::getRayRequestDataArray($value);
+            }
+        }
+
+        return $request;
+    }
+
+    private static function getRayRequestDataArray($array)
+    {
+        $maskValuesParam = [
+            'password',
+            'Password',
+            'urlBase64',
+            'content',
+        ];
+
+        foreach($array as $param=>$value) {
+            if(is_array($value)) {
+                $request[$param] = self::getRayRequestDataArray($value);
+            }
+
+            if(in_array($param, $maskValuesParam)) {
+                $request[$param] = '...';
+            }
+        }
+
+        return $array;
     }
 
     /**
@@ -162,6 +274,58 @@ class BaseController
 
         if(!empty($data)) {
             $response['data'] = $data;
+        }
+
+        if(config('api.ray') and function_exists('ray')) {
+            $ip = request()->ip();
+            $allow = self::allowIpForRay($ip);
+
+            if($allow) {
+                $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
+                $title[] = strtoupper(config('app.name'));
+                $title[] = 'API RESPONSE';
+
+                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
+                    $title[] = $trace[1]['class'];
+                    $title[] = $trace[1]['function'];
+
+                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
+                        foreach($trace[1]['args'] as $arg) {
+                            $title[] = $arg;
+                        }
+                    }
+                }
+
+                $log = null;
+                if(config('api.ray_log_class')) {
+                    $class = config('api.ray_log_class');
+                    try {
+                        $log = $class::getLabel(request('type'));
+                    } catch (\Exception $e) {
+                        $log = null;
+                    }
+
+                    if($log and request('user_id')) {
+                        $log.=' - '.request('user_id');
+                    }
+                }
+
+                $rayPayload = [
+                    'success' => true,
+                    'code' => 200,
+                    'data' => $data,
+                    'request' => self::getRayRequestData(),
+                    'ip'=>implode(', ', request()->ips()),
+                    'trace' => $trace,
+                ];
+
+
+                if($log) {
+                    $rayPayload = array_merge(['log'=>$log], $rayPayload);
+                }
+
+                ray(implode(' - ', $title), $rayPayload)->green();
+            }
         }
 
         return response()->json($response, 200);

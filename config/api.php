@@ -7,11 +7,19 @@ return [
         'namedPrefix'=>'api-tools',
         'schemaEndpoint'=>'schema',
         'middleware' => [
-            'api', 'api-tools'
+            'auth', 'api', 'api-tools'
         ],
     ],
 
     'debug'=>env('API_DEBUG', false),
+    'allowAuthenticatedRequests'=>env('API_ALLOW_AUTHENTICATED_REQUESTS', false),
+
+    'ray'=>env('API_RAY', false),
+    'ray_log_class'=>env('API_RAY_LOG_CLASS', false),
+
+    'ray_ip_whitelist'=> (!env('API_RAY_IP_WHITELIST') ? [] : explode(',', env('API_RAY_IP_WHITELIST'))),
+    'ray_ip_blacklist'=> (!env('API_RAY_IP_BLACKLIST') ? [] : explode(',', env('API_RAY_IP_BLACKLIST'))),
+
     'secret'=>env('API_SECRET', false),
 
     'docs'=> [
