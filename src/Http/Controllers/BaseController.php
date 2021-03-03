@@ -144,19 +144,8 @@ class BaseController
 
             if($allow) {
                 $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
-                $title[] = strtoupper(config('app.name'));
-                $title[] = 'API RESPONSE';
-
-                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
-                    $title[] = $trace[1]['class'];
-                    $title[] = $trace[1]['function'];
-
-                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
-                        foreach($trace[1]['args'] as $arg) {
-                            $title[] = $arg;
-                        }
-                    }
-                }
+                $significantTrace = $trace[1];
+                $title = self::getTitlePartsFromSignificantTrace('API RESPONSE', $significantTrace);
 
                 $rayPayload = [
                     'success' => true,
@@ -198,19 +187,8 @@ class BaseController
 
             if($allow) {
                 $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
-                $title[] = strtoupper(config('app.name'));
-                $title[] = 'API ERROR';
-
-                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
-                    $title[] = $trace[1]['class'];
-                    $title[] = $trace[1]['function'];
-
-                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
-                        foreach($trace[1]['args'] as $arg) {
-                            $title[] = $arg;
-                        }
-                    }
-                }
+                $significantTrace = $trace[1];
+                $title = self::getTitlePartsFromSignificantTrace('API RESPONSE', $significantTrace);
 
                 ray(implode(' - ', $title), [
                     'success' => false,
@@ -224,6 +202,33 @@ class BaseController
         }
 
         return response()->json($response, $code);
+    }
+
+    /**
+     * Return titles from label and trace information
+     * @param $label
+     * @param $significantTrace
+     * @return array
+     */
+    public static function getTitlePartsFromSignificantTrace($label, $significantTrace)
+    {
+        $title[] = strtoupper(config('app.name'));
+        $title[] = $label;
+        if(isset($significantTrace['class']) and isset($significantTrace['function'])) {
+            $title[] = $significantTrace['class'];
+            $title[] = $significantTrace['function'];
+
+            if(isset($significantTrace['args']) and !empty($significantTrace['args'])) {
+                foreach($significantTrace['args'] as $arg) {
+                    if(empty($arg) or is_array($arg)) {
+                        continue;
+                    }
+                    $title[] = $arg;
+                }
+            }
+        }
+
+        return $title;
     }
 
     protected static function getRayRequestData()
@@ -282,19 +287,8 @@ class BaseController
 
             if($allow) {
                 $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
-                $title[] = strtoupper(config('app.name'));
-                $title[] = 'API RESPONSE';
-
-                if(isset($trace[1]['class']) and isset($trace[1]['function'])) {
-                    $title[] = $trace[1]['class'];
-                    $title[] = $trace[1]['function'];
-
-                    if(isset($trace[1]['args']) and !empty($trace[1]['args'])) {
-                        foreach($trace[1]['args'] as $arg) {
-                            $title[] = $arg;
-                        }
-                    }
-                }
+                $significantTrace = $trace[1];
+                $title = self::getTitlePartsFromSignificantTrace('API RESPONSE', $significantTrace);
 
                 $log = null;
                 if(config('api.ray_log_class')) {
