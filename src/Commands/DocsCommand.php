@@ -148,12 +148,12 @@ class DocsCommand extends Command
                 $string .= $this->alarm($method['api']['description'], 'primary', 'fa-commenting');
             }
 
-            if (isset($method['api']['exampleReturn']) and !empty($method['api']['exampleReturn'])) {
-                $string .= $this->h4('Example response');
-
-                $json = $this->formatJsonForMarkdown($method['api']['exampleReturn']);
-                $string .= $this->code($json, 'json');
-            }
+//            if (isset($method['api']['exampleReturn']) and !empty($method['api']['exampleReturn'])) {
+//                $string .= $this->h4('Example response');
+//
+//                $json = $this->formatJsonForMarkdown($method['api']['exampleReturn']);
+//                $string .= $this->code($json, 'json');
+//            }
 
             $string .= $this->h4('Path');
             $string .= "```markdown \n" . $method['route']['uri'] . " \n ``` \n";

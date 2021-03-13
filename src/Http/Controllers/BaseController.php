@@ -819,6 +819,7 @@ class BaseController
      */
     protected function filesAttach($model, $filesPayload, $role='files')
     {
+        $files = [];
         foreach($filesPayload as $file) {
             if(isset($file['url']) and !empty($file['url'])) {
                 if(isset($file['extension']) and !empty($file['extension'])) {
@@ -851,6 +852,7 @@ class BaseController
                 $metadata['basename'] = $metadata['name'];
 
                 $file = \App\File::create($metadata, $contents);
+                $files[] = $file;
 
                 if(isset($file['role']) and !empty($file['role'])) {
                     $file->attach($model, $file['role']);
@@ -887,6 +889,7 @@ class BaseController
                 $metadata['basename'] = $metadata['name'];
 
                 $file = \App\File::create($metadata, $contents);
+                $files[] = $file;
 
                 if(isset($file['role']) and !empty($file['role'])) {
                     $file->attach($model, $file['role']);
@@ -921,6 +924,7 @@ class BaseController
                 $metadata['basename'] = $metadata['name'];
 
                 $file = \App\File::create($metadata, $contents);
+                $files[] = $file;
 
                 if(isset($file['role']) and !empty($file['role'])) {
                     $file->attach($model, $file['role']);
@@ -929,5 +933,7 @@ class BaseController
                 }
             }
         }
+
+        return $files;
     }
 }
