@@ -207,4 +207,10 @@ class ApiController extends BaseController
         }
         return $docComment;
     }
+
+    public function showCode()
+    {
+        dd(\ApiTools\App\DotNetPublish::generateFiles());
+
+    }
 }

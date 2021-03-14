@@ -44,6 +44,8 @@ class ApiToolsServiceProvider extends ServiceProvider
             ], ['views', 'apitools', 'adminify']);
         }
 
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'api-tools');
+
         if(config('api.docs.includeTheme')) {
             \BinaryTorch\LaRecipe\LaRecipe::style('api-tools', __DIR__.'/../docs/theme.css');
         }
