@@ -33,10 +33,10 @@
 @foreach ($method['parameters'] as $parameter)
         /// <param name="{{ $parameter['name'] }}">{{ $parameter['required'] ? 'Required' : 'Optional' }} parameter '{{ $parameter['name'] }}' of type {{ $parameter['type']=='float' ? 'double' : $parameter['type'] }}</param>
 @endforeach
+        /// <param name="endpointData">Required parameter endpointData of type System.Dynamic.ExpandoObject</param>
         /// <returns>
         /// Data object
         /// </returns>
-{{--        System.Dynamic.ExpandoObject endpointData = null--}}
         public static object {{ $method['name'] }}({{ \ApiClientTools\Commands\PublishCommand::getDotNetParametersStrings($method)['parametersString'] }}{{ \ApiClientTools\Commands\PublishCommand::getDotNetParametersStrings($method)['postParamsString'] }})
         {
 @if(!empty(\ApiClientTools\Commands\PublishCommand::getDotNetParametersStrings($method)['methodBodyContent']))

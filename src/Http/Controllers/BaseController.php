@@ -819,6 +819,17 @@ class BaseController
      */
     protected function filesAttach($model, $filesPayload, $role='files')
     {
+        $excludeFromMetadata = [
+            'hash',
+            'size',
+            'url',
+            'content',
+            'urlBase64',
+            'mime',
+            'role',
+            'order',
+        ];
+
         $files = [];
         foreach($filesPayload as $file) {
             if(isset($file['url']) and !empty($file['url'])) {
@@ -850,6 +861,10 @@ class BaseController
                     $metadata['name'] = $metadata['hash'];
                 }
                 $metadata['basename'] = $metadata['name'];
+
+                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
+                    $metadata[$param] = $value;
+                }
 
                 $file = \App\File::create($metadata, $contents);
                 $files[] = $file;
@@ -888,6 +903,10 @@ class BaseController
                 }
                 $metadata['basename'] = $metadata['name'];
 
+                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
+                    $metadata[$param] = $value;
+                }
+
                 $file = \App\File::create($metadata, $contents);
                 $files[] = $file;
 
@@ -922,6 +941,10 @@ class BaseController
                     $metadata['name'] = $metadata['hash'];
                 }
                 $metadata['basename'] = $metadata['name'];
+
+                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
+                    $metadata[$param] = $value;
+                }
 
                 $file = \App\File::create($metadata, $contents);
                 $files[] = $file;

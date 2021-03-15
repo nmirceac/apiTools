@@ -208,9 +208,57 @@ class ApiController extends BaseController
         return $docComment;
     }
 
-    public function showCode()
+    public function dotNetCode(string $section='index')
     {
-        dd(\ApiTools\App\DotNetPublish::generateFiles());
+        $schema = \ApiTools\App\DotNetPublish::getSchema();
+        if($section=='index') {
+            return view('api-tools::dotnet.index', ['schema'=>$schema]);
+        }
 
+        foreach($schema['classes'] as $class) {
+            if($class['model']==$section) {
+                $content = \ApiTools\App\DotNetPublish::generateForClass($class);
+                return response($content)
+                    ->header('Content-Type', 'text/plain.cs=code')
+                    ->header('Content-Description', $class['model'])
+                    ->header('Content-Length', strlen($content))
+                    ->header('Content-Disposition', 'inline; filename="' . $class['model'] . '.cs"');
+            }
+        }
+
+
+
+
+        if($section=='package') {
+            $packageHash = md5(json_encode($schema));
+            $packageName = 'Package-'.$packageHash.'.zip';
+            $basePackagePath = dirname(__FILE__).'/../../../dotnet/ApiClientTools/';
+            $zip = new \ZipArchive;
+            $zip->open($packageName, \ZipArchive::CREATE|\ZipArchive::OVERWRITE);
+
+            foreach($schema['classes'] as $class) {
+                $fileName = $class['model'] . '.cs';
+                $content = \ApiTools\App\DotNetPublish::generateForClass($class);
+                $zip->addFromString('Api/'.$fileName, $content);
+            }
+
+            foreach(glob($basePackagePath.'*') as $file) {
+                $zip->addFromString('ApiClientTools/'.basename($file), file_get_contents($file));
+            }
+
+            $zip->close();
+
+            $content = file_get_contents($packageName);
+            unlink ($packageName);
+
+            return response($content)
+                ->header('Content-Type', '	application/zip')
+                ->header('Content-Description', 'DotNet ApiClientTools package')
+                ->header('Content-Length', strlen($content))
+                ->header('Content-Disposition', 'attachment; filename="' . $packageName . '"');
+
+        }
+
+        return abort(404);
     }
 }

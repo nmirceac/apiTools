@@ -26,9 +26,7 @@ class DotNetPublish
 
     public static function generateForClass($class)
     {
-        $code = self::getDotNetCode($class);
-        echo '<pre>'.($code).'</pre>';
-        exit();
+        return self::getDotNetCode($class);
     }
 
     private static function getDotNetCode(array $class)

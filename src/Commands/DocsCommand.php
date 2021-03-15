@@ -254,8 +254,13 @@ class DocsCommand extends Command
         $string .= $this->anchor('Intro');
 
         foreach($schema['intro'] as $part) {
+            if(in_array($part['type'], ['h1', 'h2'])) {
+                $string .= $this->anchor($part['content']);
+            }
             $string .= $this->{$part['type']}($part['content']);
         }
+
+        $string .= $this->h2('<a href="/api/dotNetCode">DotNet package available here</a>');
 
         //$string .= $this->anchor('Image');
         //$string .= $this->h2('Image');
@@ -272,8 +277,15 @@ class DocsCommand extends Command
 
         //$string = $this->processAnchors($string);
 
-         $string .= $this->sideMenuTitle('Introduction');
-         $string .= $this->sideMenuItem('Overview');
+
+        $string .= $this->sideMenuTitle('Introduction');
+        foreach($schema['intro'] as $part) {
+            if(in_array($part['type'], ['h2'])) {
+                $string .= $this->sideMenuItem($part['content'], '#'.strtolower($part['content']));
+            }
+        }
+        $string .= $this->sideMenuItemAbsoluteLink('DotNet package', '/api/dotNetCode');
+
          //$string .= $this->sideMenuItem('Installation');
 
          //$string .= $this->sideMenuTitle('Models');
@@ -361,6 +373,11 @@ class DocsCommand extends Command
             $anchorName = Str::slug($item);
         }
         return '    - [' . $item . '](/{{route}}/{{version}}/' . $anchorName . ')' . $this->newline(2);
+    }
+
+    private function sideMenuItemAbsoluteLink($item, $link)
+    {
+        return '    - [' . $item . '](' . $link . ')' . $this->newline(2);
     }
 
     private function sideMenuItemAnchor($item, $anchorName=null)
