@@ -19,7 +19,7 @@ namespace ApiClientTools
         public System.Net.Http.HttpMethod method;
         public string requestUrl;
         public string endpointUrl;
-        
+
 
         public Dictionary<string, string> endpointParams;
         public Dictionary<string, string> endpointUrlData;
@@ -56,15 +56,15 @@ namespace ApiClientTools
             string apiKey = Config.getKey();
 
             request.Headers.Add("Accept", "application/json");
+            request.Headers.Add("X-Agent", "apiClientTools.dotNet");
             request.Headers.Add("X-Api-Key", apiKey);
-
 
             if(payloadData!=null && ((System.Collections.Generic.IDictionary<String, object>)payloadData).Count > 0) {
                 var jsonPayload = JsonConvert.SerializeObject(payloadData);
                 var requestContent = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
                 request.Content = requestContent;
             }
-            
+
 
             return request;
         }
