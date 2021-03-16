@@ -18,12 +18,12 @@ namespace ApiClientTools
     {
         public static async Task<object> doGet(string endpoint, Dictionary<string, string> endpointParams = null, Dictionary<string, string> endpointData = null)
         {
-            dynamic response = await doGetRequest(endpoint, endpointParams, endpointData);
+            dynamic response = doGetRequest(endpoint, endpointParams, endpointData);
             return response.data;
         }
-        
 
-        public static async Task<ApiClientTools.Response> doGetRequest(string endpoint, Dictionary<string, string> endpointParams = null, Dictionary<string, string> endpointData = null)
+
+        public static ApiClientTools.Response doGetRequest(string endpoint, Dictionary<string, string> endpointParams = null, Dictionary<string, string> endpointData = null)
         {
             ApiClientTools.Request request = new ApiClientTools.Request();
             request.endpointUrl = endpoint;
@@ -32,19 +32,19 @@ namespace ApiClientTools
             request.method = System.Net.Http.HttpMethod.Get;
 
             HttpClient client = new HttpClient();
-            var response = await client.SendAsync(request.getHttpRequest());
-            
+            var response = client.SendAsync(request.getHttpRequest()).Result;
+
             ApiClientTools.Response apiClientToolsResponse = ApiClientTools.Response.processResponse(request, response);
             return apiClientToolsResponse;
         }
 
         public static async Task<object> doPost(string endpoint, Dictionary<string, string> endpointParams = null, ExpandoObject data = null)
         {
-            dynamic response = await doPostRequest(endpoint, endpointParams, data);
+            dynamic response = doPostRequest(endpoint, endpointParams, data);
             return response.data;
         }
 
-        public static async Task<ApiClientTools.Response> doPostRequest(string endpoint, Dictionary<string, string> endpointParams = null, ExpandoObject data = null)
+        public static ApiClientTools.Response doPostRequest(string endpoint, Dictionary<string, string> endpointParams = null, ExpandoObject data = null)
         {
             ApiClientTools.Request request = new ApiClientTools.Request();
             request.endpointUrl = endpoint;
@@ -53,8 +53,8 @@ namespace ApiClientTools
             request.method = System.Net.Http.HttpMethod.Post;
 
             HttpClient client = new HttpClient();
-            var response = await client.SendAsync(request.getHttpRequest());
-            
+            var response = client.SendAsync(request.getHttpRequest()).Result;
+
             ApiClientTools.Response apiClientToolsResponse = ApiClientTools.Response.processResponse(request, response);
             return apiClientToolsResponse;
         }

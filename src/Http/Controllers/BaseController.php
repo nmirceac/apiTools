@@ -152,6 +152,7 @@ class BaseController
                     'code' => 200,
                     'data' => $data,
                     'ip'=>implode(', ', request()->ips()),
+                    'agent'=>request()->attributes->get('agent'),
                     'trace' => $trace,
                 ];
 
@@ -196,6 +197,7 @@ class BaseController
                     'error' => $error,
                     'errorMessages' => $errorMessages,
                     'ip'=>implode(', ', request()->ips()),
+                    'agent'=>request()->attributes->get('agent'),
                     'trace' => $trace,
                 ])->red();
             }
@@ -214,6 +216,7 @@ class BaseController
     {
         $title[] = strtoupper(config('app.name'));
         $title[] = $label;
+
         if(isset($significantTrace['class']) and isset($significantTrace['function'])) {
             $title[] = $significantTrace['class'];
             $title[] = $significantTrace['function'];
@@ -310,6 +313,7 @@ class BaseController
                     'data' => $data,
                     'request' => self::getRayRequestData(),
                     'ip'=>implode(', ', request()->ips()),
+                    'agent'=>request()->attributes->get('agent'),
                     'trace' => $trace,
                 ];
 
