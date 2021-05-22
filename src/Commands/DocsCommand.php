@@ -47,7 +47,7 @@ class DocsCommand extends Command
         $this->info('All done');
     }
 
-    private function checkPaths()
+    public function checkPaths()
     {
         $basePath = resource_path('docs');
         if(!file_exists($basePath)) {
@@ -59,12 +59,12 @@ class DocsCommand extends Command
         }
     }
 
-    private function getApiSchema()
+    public function getApiSchema()
     {
         return (new \App\Http\Controllers\Api\Api())->generateSchema();
     }
 
-    private function generateDocumentation()
+    public function generateDocumentation()
     {
         $schema = $this->getApiSchema();
 
@@ -77,7 +77,7 @@ class DocsCommand extends Command
         $this->generateSideMenu($schema['classes']);
     }
 
-    private function generateSideMenu($models)
+    public function generateSideMenu($models)
     {
         $string  = '- '.$this->h2('Introduction');
         $string .= '    - [Overview](/{{route}}/{{version}}/overview)'.$this->newline(1);
@@ -90,7 +90,7 @@ class DocsCommand extends Command
         file_put_contents(resource_path('docs/master/index.md'), $string);
     }
 
-    private function generateDocsForClass($class)
+    public function generateDocsForClass($class)
     {
         $string = $this->h1($class['name']);
 
@@ -184,7 +184,7 @@ class DocsCommand extends Command
         file_put_contents(resource_path('docs/master/' . Str::slug($class['name']) . '.md'), $string);
     }
 
-    private function formatJsonForMarkdown($jsonText)
+    public function formatJsonForMarkdown($jsonText)
     {
         $json = str_replace('#', '\#', $jsonText);
         $result = '';
@@ -247,7 +247,7 @@ class DocsCommand extends Command
         return $result;
     }
 
-    private function generateOverview($schema)
+    public function generateOverview($schema)
     {
         $string = '';
 
@@ -295,7 +295,7 @@ class DocsCommand extends Command
         file_put_contents(resource_path('docs/master/overview.md'), $string);
     }
 
-    private function demo()
+    public function demo()
     {
         $string = '';
 
@@ -362,12 +362,12 @@ class DocsCommand extends Command
         file_put_contents(resource_path('docs/master/overview.md'), $string);
     }
 
-    private function sideMenuTitle($title)
+    public function sideMenuTitle($title)
     {
         return '- ## ' . trim($title) . $this->newline(2);
     }
 
-    private function sideMenuItem($item, $anchorName=null)
+    public function sideMenuItem($item, $anchorName=null)
     {
         if(empty($anchorName)) {
             $anchorName = Str::slug($item);
@@ -375,12 +375,12 @@ class DocsCommand extends Command
         return '    - [' . $item . '](/{{route}}/{{version}}/' . $anchorName . ')' . $this->newline(2);
     }
 
-    private function sideMenuItemAbsoluteLink($item, $link)
+    public function sideMenuItemAbsoluteLink($item, $link)
     {
         return '    - [' . $item . '](' . $link . ')' . $this->newline(2);
     }
 
-    private function sideMenuItemAnchor($item, $anchorName=null)
+    public function sideMenuItemAnchor($item, $anchorName=null)
     {
         if(empty($anchorName)) {
             $anchorName = Str::slug($item);
@@ -388,56 +388,56 @@ class DocsCommand extends Command
         return '    - [' . $item . '](#' . $anchorName . ')' . $this->newline(2);
     }
 
-    private function h1($text = '')
+    public function h1($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '# ' . trim($text) . $this->newline(2);
     }
 
-    private function h2($text = '')
+    public function h2($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '## ' . trim($text) . $this->newline(2);
     }
 
-    private function h3($text = '')
+    public function h3($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '### ' . trim($text) . $this->newline(2);
     }
 
-    private function h4($text = '')
+    public function h4($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '#### ' . trim($text) . $this->newline(2);
     }
 
-    private function h5($text = '')
+    public function h5($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '##### ' . trim($text) . $this->newline(2);
     }
 
-    private function h6($text = '')
+    public function h6($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '###### ' . trim($text) . $this->newline(2);
     }
 
-    private function paragraph($text = '')
+    public function paragraph($text = '')
     {
         $this->setLastElement(__FUNCTION__);
 
         return trim($text) . $this->newline(2);
     }
 
-    private function newline($amount = 1)
+    public function newline($amount = 1)
     {
         $string = '';
 
@@ -452,21 +452,21 @@ class DocsCommand extends Command
         return $string;
     }
 
-    private function image($src, $alt = 'Image')
+    public function image($src, $alt = 'Image')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '![' . $alt . '](' . $src . ')' . $this->newline(2);
     }
 
-    private function code($text, $type = 'php')
+    public function code($text, $type = 'php')
     {
         $this->setLastElement(__FUNCTION__);
 
         return '```' . $type . ' ' . $this->newline() . trim($text) . $this->newline() . '```' . $this->newline(2);
     }
 
-    private function badge($text, $type = 'success')
+    public function badge($text, $type = 'success')
     {
         $this->checkType($type);
 
@@ -475,7 +475,7 @@ class DocsCommand extends Command
         return '<larecipe-badge type="' . $type . '" rounded>' . trim($text) . '</larecipe-badge>' . $this->newline(2);
     }
 
-    private function alarm($text, $type = 'success', $icon = null)
+    public function alarm($text, $type = 'success', $icon = null)
     {
         $this->checkType($type);
 
@@ -499,7 +499,7 @@ class DocsCommand extends Command
         return $string;
     }
 
-    private function anchor($name)
+    public function anchor($name)
     {
         $this->anchors[] = $name;
 
@@ -508,7 +508,7 @@ class DocsCommand extends Command
         return '<a name="' . Str::slug($name) . '"></a>' . $this->newline(2);
     }
 
-    private function processAnchors($string)
+    public function processAnchors($string)
     {
         $anchorString = '';
 
@@ -519,12 +519,12 @@ class DocsCommand extends Command
         return $anchorString . $this->newline(2) . $string;
     }
 
-    private function tocItem($name)
+    public function tocItem($name)
     {
         return '- [' . $name . '](#' . Str::slug($name) . ')' . $this->newline();
     }
 
-    private function checkType($type)
+    public function checkType($type)
     {
         $allowedTypes = ['primary', 'success', 'info', 'danger', 'warning'];
         if (!in_array($type, $allowedTypes)) {
@@ -533,17 +533,17 @@ class DocsCommand extends Command
         }
     }
 
-    private function setLastElement($element)
+    public function setLastElement($element)
     {
         $this->lastElement = $element;
     }
 
-    private function spacer()
+    public function spacer()
     {
         return '---'.$this->newline(1);
     }
 
-    private function recipeSwagger($method)
+    public function recipeSwagger($method)
     {
         $url = $method['route']['uri'];
 
@@ -579,7 +579,7 @@ class DocsCommand extends Command
         return $string;
     }
 
-    private function tableSet($headers = [], $items = [])
+    public function tableSet($headers = [], $items = [])
     {
         if (empty($headers)) {
             exit();
