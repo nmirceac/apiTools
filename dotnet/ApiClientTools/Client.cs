@@ -16,6 +16,17 @@ namespace ApiClientTools
 {
     public class Client
     {
+        public static HttpClientHandler getHttpHandler()
+        {
+            return new HttpClientHandler{
+                MaxResponseHeadersLength = 1024,
+                UseCookies = false,
+                // UseDefaultCredentials = false,
+                // Proxy = new WebProxy("http://localhost:8888", false, new string[]{}),
+                // UseProxy = true,
+            };
+        }
+
         public static async Task<object> doGet(string endpoint, Dictionary<string, string> endpointParams = null, Dictionary<string, string> endpointData = null)
         {
             dynamic response = doGetRequest(endpoint, endpointParams, endpointData);
@@ -31,7 +42,7 @@ namespace ApiClientTools
             request.endpointUrlData = endpointData;
             request.method = System.Net.Http.HttpMethod.Get;
 
-            HttpClient client = new HttpClient();
+            HttpClient client = new HttpClient(getHttpHandler());
             var response = client.SendAsync(request.getHttpRequest()).Result;
 
             ApiClientTools.Response apiClientToolsResponse = ApiClientTools.Response.processResponse(request, response);
@@ -52,7 +63,7 @@ namespace ApiClientTools
             request.payloadData = data;
             request.method = System.Net.Http.HttpMethod.Post;
 
-            HttpClient client = new HttpClient();
+            HttpClient client = new HttpClient(getHttpHandler());
             var response = client.SendAsync(request.getHttpRequest()).Result;
 
             ApiClientTools.Response apiClientToolsResponse = ApiClientTools.Response.processResponse(request, response);
