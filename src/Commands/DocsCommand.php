@@ -614,7 +614,13 @@ class DocsCommand extends Command
                 if(isset($row[$index])) {
                     $item = $row[$index];
                     if(is_array($item)) {
-                        $item = implode(',', $item);
+                        try {
+                            $item = implode(', ', $item);
+                        } catch (\Exception $e) {
+                            continue 2;
+                            $item = json_encode($item);
+                        }
+
                     }
 
                     $item = trim($item);
