@@ -47,6 +47,11 @@ class ApiToolsMiddleware
             }
         }
 
+        $locale = $request->header('x-locale');
+        if($locale) {
+            \App::setLocale($locale);
+        }
+
         return $next($request);
     }
 
