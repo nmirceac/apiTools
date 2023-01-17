@@ -253,6 +253,7 @@ class BaseController
             'Password',
             'urlBase64',
             'content',
+            'contents',
         ];
 
         foreach($array as $param=>$value) {
@@ -801,7 +802,7 @@ class BaseController
         foreach($payload['files'] as $file) {
             if(
                 (isset($file['url']) and !empty($file['url']))
-                or (isset($file['content']) and !empty($file['content']) and isset($file['mime']) and !empty($file['mime']))
+                or (isset($file['contents']) and !empty($file['contents']) and isset($file['mime']) and !empty($file['mime']))
                 or (isset($file['urlBase64']) and !empty($file['urlBase64']))
             ) {
                 $filesDetected[] = $file;
@@ -823,144 +824,158 @@ class BaseController
      */
     protected function filesAttach($model, $filesPayload, $role='files')
     {
+        $files = [];
+        foreach($filesPayload as $file) {
+            $file = $this->processFileMetadata($file);
+            if(empty($file)) {
+                continue;
+            }
+
+            $file = \App\File::create($file['metadata'], $file['contents']);
+            $files[] = $file;
+
+            if(isset($file['role']) and !empty($file['role'])) {
+                $file->attach($model, $file['role'], isset($file['order']) ? $file['order'] : 0);
+            } else {
+                $file->attach($model, $role);
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Get file metadata from payload
+     * @param $model
+     * @param $imagesPayload
+     */
+    protected function processFileMetadata(array $filePayload)
+    {
         $excludeFromMetadata = [
             'hash',
             'size',
             'url',
-            'content',
+            'contents',
             'urlBase64',
             'mime',
             'role',
             'order',
         ];
 
-        $files = [];
-        foreach($filesPayload as $file) {
-            if(isset($file['url']) and !empty($file['url'])) {
-                if(isset($file['extension']) and !empty($file['extension'])) {
-                    $metadata['extension'] = $file['extension'];
-                } else {
-                    continue;
-                }
-
-                if(isset($file['mime']) and !empty($file['mime'])) {
-                    $metadata['mime'] = $file['mime'];
-                } else {
-                    continue;
-                }
-
-                $contents = file_get_contents($file['url']);
-
-                if(empty($contents)) {
-                    continue;
-                }
-
-                $metadata['size'] = strlen($contents);
-                $metadata['originalPath'] = $file['url'];
-                $metadata['hash'] = md5($contents);
-
-                if(isset($file['name']) and !empty($file['name'])) {
-                    $metadata['name'] = $file['name'];
-                } else {
-                    $metadata['name'] = $metadata['hash'];
-                }
-                $metadata['basename'] = $metadata['name'];
-
-                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
-                    $metadata[$param] = $value;
-                }
-
-                $file = \App\File::create($metadata, $contents);
-                $files[] = $file;
-
-                if(isset($file['role']) and !empty($file['role'])) {
-                    $file->attach($model, $file['role']);
-                } else {
-                    $file->attach($model, $role);
-                }
-            } else if(isset($file['content']) and !empty($file['content'])) {
-                if(isset($file['extension']) and !empty($file['extension'])) {
-                    $metadata['extension'] = $file['extension'];
-                } else {
-                    continue;
-                }
-
-                if(isset($file['mime']) and !empty($file['mime'])) {
-                    $metadata['mime'] = $file['mime'];
-                } else {
-                    continue;
-                }
-
-                $contents = base64_decode($file['content']);
-
-                if(empty($contents)) {
-                    continue;
-                }
-
-                $metadata['size'] = strlen($contents);
-                $metadata['hash'] = md5($contents);
-
-                if(isset($file['name']) and !empty($file['name'])) {
-                    $metadata['name'] = $file['name'];
-                } else {
-                    $metadata['name'] = $metadata['hash'];
-                }
-                $metadata['basename'] = $metadata['name'];
-
-                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
-                    $metadata[$param] = $value;
-                }
-
-                $file = \App\File::create($metadata, $contents);
-                $files[] = $file;
-
-                if(isset($file['role']) and !empty($file['role'])) {
-                    $file->attach($model, $file['role']);
-                } else {
-                    $file->attach($model, $role);
-                }
-            } else if(isset($file['urlBase64']) and !empty($file['urlBase64'])) {
-                $mime = substr($file['urlBase64'], 5,  strpos($file['urlBase64'], ';') - 5);
-                $base64Content = substr($file['urlBase64'], strpos($file['urlBase64'], ',') + 1);
-
-                if(isset($file['extension']) and !empty($file['extension'])) {
-                    $metadata['extension'] = $file['extension'];
-                } else {
-                    continue;
-                }
-
-                $contents = base64_decode($base64Content);
-
-                if(empty($contents)) {
-                    continue;
-                }
-
-                $metadata['mime'] = $mime;
-                $metadata['size'] = strlen($contents);
-                $metadata['hash'] = md5($contents);
-
-                if(isset($file['name']) and !empty($file['name'])) {
-                    $metadata['name'] = $file['name'];
-                } else {
-                    $metadata['name'] = $metadata['hash'];
-                }
-                $metadata['basename'] = $metadata['name'];
-
-                foreach(collect($file)->except($excludeFromMetadata) as $param=>$value) {
-                    $metadata[$param] = $value;
-                }
-
-                $file = \App\File::create($metadata, $contents);
-                $files[] = $file;
-
-                if(isset($file['role']) and !empty($file['role'])) {
-                    $file->attach($model, $file['role']);
-                } else {
-                    $file->attach($model, $role);
-                }
+        if(isset($filePayload['url']) and !empty($filePayload['url'])) {
+            if(isset($filePayload['extension']) and !empty($filePayload['extension'])) {
+                $metadata['extension'] = $filePayload['extension'];
+            } else {
+                return;
             }
-        }
 
-        return $files;
+            $contents = file_get_contents($filePayload['url']);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $temporaryPath = \App\File::getMimeMetadataTemporaryFilePath($metadata['extension']);
+            file_put_contents($temporaryPath, $contents);
+            $metadata['mime'] = \Illuminate\Support\Facades\File::mimeType($temporaryPath);
+            $metadata['size'] = \Illuminate\Support\Facades\File::size($temporaryPath);
+            unlink($temporaryPath);
+
+
+            $metadata['originalPath'] = $filePayload['url'];
+            $metadata['hash'] = md5($contents);
+
+            if(isset($filePayload['name']) and !empty($filePayload['name'])) {
+                $metadata['name'] = $filePayload['name'];
+            } else {
+                $metadata['name'] = $metadata['hash'];
+            }
+
+            foreach(collect($filePayload)->except($excludeFromMetadata) as $param=>$value) {
+                $metadata[$param] = $value;
+            }
+
+            return [
+                'metadata'=>$metadata,
+                'contents'=>$contents,
+                'role'=>(isset($filePayload['role']) and !empty($filePayload['role'])) ? $filePayload['role'] : null,
+                'order'=>(isset($filePayload['order']) and !empty($filePayload['order'])) ? $filePayload['order'] : null,
+            ];
+        } else if(isset($filePayload['contents']) and !empty($filePayload['contents'])) {
+            if(isset($filePayload['extension']) and !empty($filePayload['extension'])) {
+                $metadata['extension'] = $filePayload['extension'];
+            } else {
+                return;
+            }
+
+            if(isset($filePayload['mime']) and !empty($filePayload['mime'])) {
+                $metadata['mime'] = $filePayload['mime'];
+            } else {
+                return;
+            }
+
+            $contents = base64_decode($filePayload['contents']);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $metadata['size'] = strlen($contents);
+            $metadata['hash'] = md5($contents);
+
+            if(isset($filePayload['name']) and !empty($filePayload['name'])) {
+                $metadata['name'] = $filePayload['name'];
+            } else {
+                $metadata['name'] = $metadata['hash'];
+            }
+            $metadata['basename'] = $metadata['name'];
+
+            foreach(collect($filePayload)->except($excludeFromMetadata) as $param=>$value) {
+                $metadata[$param] = $value;
+            }
+
+            return [
+                'metadata'=>$metadata,
+                'contents'=>$contents,
+                'role'=>(isset($filePayload['role']) and !empty($filePayload['role'])) ? $filePayload['role'] : null,
+                'order'=>(isset($filePayload['order']) and !empty($filePayload['order'])) ? $filePayload['order'] : null,
+            ];
+        } else if(isset($filePayload['urlBase64']) and !empty($filePayload['urlBase64'])) {
+            $mime = substr($filePayload['urlBase64'], 5,  strpos($filePayload['urlBase64'], ';') - 5);
+            $base64Content = substr($filePayload['urlBase64'], strpos($filePayload['urlBase64'], ',') + 1);
+
+            if(isset($filePayload['extension']) and !empty($filePayload['extension'])) {
+                $metadata['extension'] = $filePayload['extension'];
+            } else {
+                return;
+            }
+
+            $contents = base64_decode($base64Content);
+
+            if(empty($contents)) {
+                return;
+            }
+
+            $metadata['mime'] = $mime;
+            $metadata['size'] = strlen($contents);
+            $metadata['hash'] = md5($contents);
+
+            if(isset($filePayload['name']) and !empty($filePayload['name'])) {
+                $metadata['name'] = $filePayload['name'];
+            } else {
+                $metadata['name'] = $metadata['hash'];
+            }
+
+            foreach(collect($filePayload)->except($excludeFromMetadata) as $param=>$value) {
+                $metadata[$param] = $value;
+            }
+
+            return [
+                'metadata'=>$metadata,
+                'contents'=>$contents,
+                'role'=>(isset($filePayload['role']) and !empty($filePayload['role'])) ? $filePayload['role'] : null,
+                'order'=>(isset($filePayload['order']) and !empty($filePayload['order'])) ? $filePayload['order'] : null,
+            ];
+        }
     }
 }
