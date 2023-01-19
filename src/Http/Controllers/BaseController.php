@@ -845,6 +845,37 @@ class BaseController
     }
 
     /**
+     * Gets the file payload for the file creation
+     * @return array
+     * @throws \Exception
+     */
+    public function getFilePayload()
+    {
+        $file = request('file', []);
+        foreach(request()->all() as $key=>$value) {
+            if(substr($key, 0, 5) == 'file[') {
+                $key = substr($key, 5, -1);
+                if($key=='urlbase64') {
+                    $key = 'urlBase64';
+                }
+                $file[$key] = $value;
+            }
+        }
+
+        if(empty($file)) {
+            throw new \Exception('No file detected');
+        }
+
+        $filePayload = $this->processFileMetadata($file);
+
+        if(empty($filePayload)) {
+            throw new \Exception('No file payload detected');
+        }
+
+        return $filePayload;
+    }
+
+    /**
      * Get file metadata from payload
      * @param $model
      * @param $imagesPayload
