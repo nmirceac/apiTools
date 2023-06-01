@@ -340,6 +340,11 @@ class BaseController
         return request()->attributes->get('auth_impersonator_id');
     }
 
+    public static function identifier()
+    {
+        return request()->attributes->get('identifier');
+    }
+
     protected function getApiAuthId()
     {
         return self::authId();

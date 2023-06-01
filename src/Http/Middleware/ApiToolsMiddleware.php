@@ -37,6 +37,11 @@ class ApiToolsMiddleware
             $request->attributes->add(['agent'=>$agent]);
         }
 
+        $identifier = $request->header('x-identifier');
+        if($identifier) {
+            $request->attributes->add(['identifier'=>$identifier]);
+        }
+
         $authId = $request->header('x-auth-id');
         if($authId) {
             $request->attributes->add(['auth_id'=>(int) $authId]);
