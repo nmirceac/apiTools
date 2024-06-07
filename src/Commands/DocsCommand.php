@@ -128,7 +128,11 @@ class DocsCommand extends Command
 
             $rows = [];
             foreach ($class['constants'] as $name => $value) {
-                $rows[] = [$name, $value];
+                if(is_bool($value)) {
+                    $rows[] = [$name, $value ? '<i>true</i>' : '<i>false</i>'];
+                } else {
+                    $rows[] = [$name, $value];
+                }
             }
 
             $string .= $this->tableSet(['Name', 'Value'], $rows);
