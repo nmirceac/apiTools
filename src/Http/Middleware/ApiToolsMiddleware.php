@@ -57,6 +57,14 @@ class ApiToolsMiddleware
             \App::setLocale($locale);
         }
 
+        if(config('api.logging.enabled') and config('api.logging.model')) {
+            $loggingModel = config('api.logging.model');
+            if(!class_exists($loggingModel)) {
+                return $this->respondWithError('Unable to log the api request to class '.$loggingModel, 404);
+            }
+            $loggingModel::log($request);
+        }
+
         return $next($request);
     }
 

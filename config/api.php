@@ -20,6 +20,11 @@ return [
     'ray_ip_whitelist'=> (!env('API_RAY_IP_WHITELIST') ? [] : explode(',', env('API_RAY_IP_WHITELIST'))),
     'ray_ip_blacklist'=> (!env('API_RAY_IP_BLACKLIST') ? [] : explode(',', env('API_RAY_IP_BLACKLIST'))),
 
+    'logging' => [
+        'enabled' => env('API_LOGGING', false),
+        'model' => env('API_LOGGING_MODEL', false),
+    ],
+
     'secret'=>env('API_SECRET', false),
 
     'docs'=> [
